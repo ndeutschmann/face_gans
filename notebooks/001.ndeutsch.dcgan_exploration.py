@@ -13,8 +13,6 @@
 #     name: python3
 # ---
 
-# NB: This is from before ordering everything into the cookiecutter framework and therefore paths are note usable
-
 import torch
 import torchvision
 from PIL import Image
@@ -24,34 +22,21 @@ import numpy as np
 import torchvision.utils as vutils
 from tqdm.autonotebook import tqdm
 import os
+import src.data.make_dataset as md
+from src.models.util import GaussianNoise,MemBatch
 
 device = torch.device("cuda")
 
-example = Image.open("/home/ndeutsch/datasets/img_align_celeba/000002.jpg")
+example = Image.open("../data/processed/img_align_celeba/000002.jpg")
 
 example 
 
-dataroot = "/home/ndeutsch/datasets/"
+dataroot = "../data/processed"
 image_size = 32
 batch_size = 128
 workers = 2
 
-# +
-my_transform=torchvision.transforms.Compose([
-                               torchvision.transforms.Resize(image_size),
-                               torchvision.transforms.CenterCrop(image_size),
-                               torchvision.transforms.ToTensor(),
-                               torchvision.transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-                           ])
-
-dataset = torchvision.datasets.ImageFolder(root=dataroot,
-                           transform=my_transform)
-
-dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
-                                         shuffle=True, num_workers=workers)
-# -
-
-dataloader
+dataloader = md.create_celebA_dataloader(32,data_root=dataroot)
 
 # +
 # Decide which device we want to run on
@@ -142,56 +127,6 @@ class ConvD(torch.nn.Module):
     def forward(self,x):
         z = self.conv(x)
         return self.dense(z.view(-1,256))
-        
-
-# +
-class GaussianNoise(torch.nn.Module):
-    def __init__(self,sig=1.):
-        super().__init__()
-        self.sig = sig
-        
-    def forward(self,x):
-        shape = list(x.shape)
-        shape[1] = 1
-        return x+torch.randn(shape,device=x.device)*self.sig
-    
-    
-class MemBatch:
-    def __init__(self,capacity,shape,*,device,noise_capacity=0):
-        self.mem = torch.zeros((capacity+noise_capacity,*shape),device=device).normal_(0,1)
-        self.device = device
-        self.capacity = capacity
-        self.noise_capacity=noise_capacity
-        self.head = 0
-        self.full = False
-        
-    def add(self,stacked_entries):        
-        if stacked_entries.shape[0]>self.capacity:
-            print("trying to save more data than capacity: shaving off the end of the batch")
-            entries = stacked_entries[:self.capacity].detach()
-        else:
-            entries = stacked_entries.detach()
-        
-        if self.head+entries.shape[0]<=self.capacity:
-            self.mem[self.head:self.head+entries.shape[0]] = entries
-        else:
-            self.mem[self.head:self.capacity] = entries[:self.capacity-self.head]
-            self.mem[:entries.shape[0]-(self.capacity-self.head)]= entries[self.capacity-self.head:]
-            self.full=True
-        
-        self.head = (self.head+entries.shape[0])%self.capacity
-    
-    def sample(self,batch_size):
-        if self.full:
-            indices = torch.randint(self.capacity+self.noise_capacity,(batch_size,))
-        else:
-            indices = torch.randint(max(self.head,1),(batch_size,))            
-        return self.mem[indices]
-    
-    def add_k_best(self,data,scores,k=16):
-        indices = torch.argsort(scores)[:k]
-        self.add(data[indices].to(self.device))
-
 
 # +
 myMem=MemBatch(32,(3,image_size,image_size),device=torch.device("cpu"),noise_capacity=4)
@@ -341,7 +276,7 @@ for attempt in range(1):
             }, "{expdir}/checkpointD.attempt{attempt}.epoch{epoch}.{lrG}.{lrD}".format(expdir=expdir,attempt=attempt,epoch=epoch,lrG=lrG,lrD=lrD))
     
 
-    
+
 
 # +
 x = torch.zeros(64,100,device=device).normal_(0,1)
