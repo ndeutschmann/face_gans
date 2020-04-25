@@ -4,7 +4,7 @@ import torch
 class GaussianNoise(torch.nn.Module):
     """Add gaussian noise with a given std"""
     def __init__(self, sig=1.):
-        super().__init__()
+        super(GaussianNoise, self).__init__()
         self.sig = sig
 
     def forward(self, x):
