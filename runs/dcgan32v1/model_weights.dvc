@@ -1,0 +1,7 @@
+md5: ef7f4a23b3304809fae84bc1d26b88d7
+outs:
+- md5: c1e5f2a7b5d00f3df15b26f6406c40cd.dir
+  path: model_weights
+  cache: true
+  metric: false
+  persist: false
