@@ -1,0 +1,6 @@
+
+['remote "gcloud_storage"']
+url = gs://dvc-face_gans/dvc
+credentialpath = /home/ndeutsch/gcloud_setup/auth.json
+[core]
+remote = gcloud_storage
