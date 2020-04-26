@@ -99,8 +99,8 @@ class ConvD(torch.nn.Module):
         return self.dense(z.view(-1,256))    
 # -
 
-gw=torch.load("../models/dcgan32v1/model_weights/checkpointG.attempt0.epoch99.3e-05.6e-05")
-dw=torch.load("../models/dcgan32v1/model_weights/checkpointD.attempt0.epoch99.3e-05.6e-05")
+gw=torch.load("../models/dcgan32v1/model_weights/checkpointG.2020_04_26")
+dw=torch.load("../models/dcgan32v1/model_weights/checkpointD.2020_04_26")
 
 G=ConvG().cuda()
 G.load_state_dict(gw["model_state_dict"])
@@ -112,3 +112,17 @@ Batch= G(x)
 plt.figure(figsize=(10,10))
 plt.imshow(np.transpose(vutils.make_grid(Batch, padding=2, normalize=True).detach().cpu(),(1,2,0)))
 plt.show()
+# -
+
+# # Generating a dataset of z,img
+
+import os
+
+nbatch = 128
+
+x = torch.zeros(nbatch,100,device=device).normal_(0,1.)
+batch = G(x)
+
+batch
+
+
