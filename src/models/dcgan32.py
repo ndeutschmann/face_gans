@@ -1,9 +1,12 @@
 import torch
+from pickle import UnpicklingError
 
 
 class DCGen32(torch.nn.Module):
     """Generator architecture for 100->32x32 images"""
-    def __init__(self):
+    def __init__(self,
+                 load_weights=False,
+                 checkpoint_path="models/dcgan32v1/model_weights/checkpointG.2020_04_26"):
         super(DCGen32, self).__init__()
         self.deconv = torch.nn.Sequential(
             torch.nn.ConvTranspose2d(100, 256, 4, 1),
@@ -32,6 +35,24 @@ class DCGen32(torch.nn.Module):
             torch.nn.Linear(100, 100),
             torch.nn.BatchNorm1d(100)
         )
+
+        if load_weights:
+            try:
+                data = torch.load(checkpoint_path)
+                self.load_state_dict(data["model_state_dict"])
+            except FileNotFoundError as e:
+                print("Could not find checkpoint "+checkpoint_path)
+                print(e)
+            except UnpicklingError as e:
+                print("Could not load checkpoint "+checkpoint_path)
+                print(e)
+            except KeyError as e:
+                print("Checkpoint {} does not contain a model_state_dict")
+                print(e)
+            except RuntimeError as e:
+                print("Keys of model_state_dict do not match loading model")
+                print(e)
+
 
     def forward(self, x):
         z = (self.dense(x) + x).unsqueeze(-1).unsqueeze(-1)
