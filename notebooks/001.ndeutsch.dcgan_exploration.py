@@ -14,15 +14,16 @@
 # ---
 
 import torch
-import torchvision
 from PIL import Image
+
+import src.data.datasets.celebA_dataloader
+
 ngpu = 2
 from matplotlib import pyplot as plt
 import numpy as np
 import torchvision.utils as vutils
 from tqdm.autonotebook import tqdm
 import os
-import src.data.make_dataset as md
 from src.models.util import GaussianNoise,MemBatch
 
 device = torch.device("cuda")
@@ -36,7 +37,7 @@ image_size = 32
 batch_size = 128
 workers = 2
 
-dataloader = md.create_celebA_dataloader(32,data_root=dataroot)
+dataloader = src.data.datasets.celebA_dataloader.create_celebA_dataloader(32, data_root=dataroot)
 
 # +
 # Decide which device we want to run on

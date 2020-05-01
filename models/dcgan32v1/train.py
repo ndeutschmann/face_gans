@@ -2,7 +2,7 @@ from .model import ConvD,ConvG
 from .train_functions import Gstep,Dstep
 import torch
 from src.models.util import GaussianNoise,MemBatch
-from src.data.make_dataset import create_celebA_dataloader
+from src.data.datasets.celebA_dataloader import create_celebA_dataloader
 from matplotlib import pyplot as plt
 import os
 from tqdm.autonotebook import tqdm
