@@ -4,7 +4,7 @@ import os
 from src.models.dcgan32 import DCGen32
 
 
-def generate_dcgan32_inversion_dataset(dataset_root="data/processed/dcgan32_invers  ion",
+def generate_dcgan32_inversion_dataset(dataset_root="data/processed/dcgan32_inversion",
                                        dataset_size=100000,
                                        batch_size=128,
                                        generator_checkpoint_path="models/dcgan32v1/model_weights/checkpointG.2020_04_26",
