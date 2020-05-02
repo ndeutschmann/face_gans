@@ -43,7 +43,7 @@ class DCGAN32Inverter(torch.nn.Module):
         return self.dense(self.conv(x).squeeze(-1).squeeze(-1))
 
 batch_size = 256
-dataloader = datasets.create_dcgan32_inversion_dataloader(batch_size=batch_size,num_workers=16,pin_memory=True)
+dataloader = datasets.create_dcgan32_inversion_dataloader_many_files(root="data/processed/dcgan32_inversion_small", batch_size=batch_size, pin_memory=True)
 
 invgan=DCGAN32Inverter(32).to(device)
 invgan.to(device)

@@ -3,31 +3,70 @@ import torchvision
 import os
 from src.models.dcgan32 import DCGen32
 
+class ImagePerFileBatchSaver:
+    def __init__(self,image_dir,ext="png",transform=None):
+        self.image_dir = image_dir
+        self.ext = ext
+        self.transform = transform
+        os.makedirs(image_dir, exist_ok=False)
+
+    def save_batch(self,batch,first_index=0):
+        for i, b in enumerate(batch):
+            b_im = self.transform(b) if self.transform is not None else b
+            b_im.save(os.path.join(self.image_dir, "{}.{}".format(i + first_index,self.ext)))
+
+    def finalize(self):
+        pass
+
+class LabelPerTorchFileBatchSaver:
+    def __init__(self,label_dir,ext="pkl",transform=None):
+        self.label_dir = label_dir
+        self.ext = ext
+        self.transform = transform
+        os.makedirs(label_dir, exist_ok=False)
+
+    def save_batch(self,batch,first_index=0):
+        for i,x in enumerate(batch):
+            x_t = self.transform(x) if self.transform is not None else x
+            torch.save(x_t, os.path.join(self.label_dir, "{}.{}".format(i + first_index,self.ext)))
+
+    def finalize(self):
+        pass
+
+
+class LabelOneTorchFileBatchSaver:
+    def __init__(self, label_dir, database_size, label_shape, filename="labels.pkl", transform=None):
+        self.label_dir = label_dir
+        self.filename = filename
+        self.transform = transform
+        self.labels = torch.zeros(database_size,*label_shape)
+        os.makedirs(label_dir, exist_ok=False)
+
+    def save_batch(self,batch,first_index=0):
+        self.labels[first_index:first_index+batch.shape[0]] = batch
+
+    def finalize(self):
+        torch.save(self.labels, os.path.join(self.label_dir,self.filename))
+
 
 def generate_dcgan32_inversion_dataset(dataset_root="data/processed/dcgan32_inversion",
                                        dataset_size=100000,
                                        batch_size=128,
                                        generator_checkpoint_path="models/dcgan32v1/model_weights/checkpointG.2020_04_26",
                                        device=torch.device("cuda:0"),
-                                       torch_seed = None):
+                                       torch_seed = None,
+                                       *,
+                                       image_saver,
+                                       label_saver):
+    """General procedure for generating pairs of z,G(z) from the generator of DCGAN32
+    Needs an image_saver and a label_saver object, implemented in different versions above
+    """
 
     generator = DCGen32().to(device)
     generator_checkpoint = torch.load(generator_checkpoint_path)
     generator.load_state_dict(generator_checkpoint["model_state_dict"])
     generator.eval()
     print("Successfully initialized generator")
-
-    imageconverter = torchvision.transforms.Compose([
-        torchvision.transforms.Normalize((-1, -1, -1), (2, 2, 2)),
-        torchvision.transforms.ToPILImage()
-    ])
-
-    image_dir = "imgs"
-    vector_dir = "vecs"
-
-    os.makedirs(dataset_root, exist_ok=True)
-    os.makedirs(os.path.join(dataset_root, image_dir), exist_ok=False)
-    os.makedirs(os.path.join(dataset_root, vector_dir), exist_ok=False)
 
     if torch_seed is not None:
         torch.manual_seed(torch_seed)
@@ -38,9 +77,8 @@ def generate_dcgan32_inversion_dataset(dataset_root="data/processed/dcgan32_inve
         batch = generator(x).cpu()
         x = x.cpu()
 
-        for i, b in enumerate(batch):
-            imageconverter(b).save(os.path.join(dataset_root, image_dir, "{}.png".format(i + n_images)))
-            torch.save(x[i], os.path.join(dataset_root, vector_dir, "{}.pkl".format(i + n_images)))
+        image_saver.save_batch(batch,first_index=n_images)
+        label_saver.save_batch(x,first_index=n_images)
         n_images += batch_size
         print("Generated and saved: {}/{} | {}".format(n_images,dataset_size,"="*(10*n_images//dataset_size)))
 
@@ -49,6 +87,76 @@ def generate_dcgan32_inversion_dataset(dataset_root="data/processed/dcgan32_inve
         batch = generator(x).cpu()
         x = x.cpu()
 
-        for i, b in enumerate(batch):
-            imageconverter(b).save(os.path.join(dataset_root, image_dir, "{}.png".format(i + n_images)))
-            torch.save(x[i], os.path.join(dataset_root, vector_dir, "{}.pkl".format(i + n_images)))
+        image_saver.save_batch(batch,first_index=n_images)
+        label_saver.save_batch(x,first_index=n_images)
+
+    image_saver.finalize()
+    label_saver.finalize()
+
+
+def generate_dcgan32_inversion_dataset_many_files(dataset_root="data/processed/dcgan32_inversion",
+                                       dataset_size=100000,
+                                       batch_size=128,
+                                       generator_checkpoint_path="models/dcgan32v1/model_weights/checkpointG.2020_04_26",
+                                       device=torch.device("cuda:0"),
+                                       torch_seed = None):
+
+    os.makedirs(dataset_root, exist_ok=True)
+
+    # Preparing the image saver
+    image_dir = os.path.join(dataset_root,"imgs")
+    imageconverter = torchvision.transforms.Compose([
+        torchvision.transforms.Normalize((-1, -1, -1), (2, 2, 2)),
+        torchvision.transforms.ToPILImage()
+    ])
+    image_saver = ImagePerFileBatchSaver(image_dir=image_dir,transform=imageconverter)
+
+    # Preparing the label saver
+    label_dir = os.path.join(dataset_root,"vecs")
+    label_saver = LabelPerTorchFileBatchSaver(label_dir=label_dir)
+
+    # Run the actual generator
+
+    generate_dcgan32_inversion_dataset(dataset_root=dataset_root,
+                                       dataset_size=dataset_size,
+                                       batch_size=batch_size,
+                                       generator_checkpoint_path=generator_checkpoint_path,
+                                       device=device,
+                                       torch_seed=torch_seed,
+                                       image_saver=image_saver,
+                                       label_saver=label_saver)
+
+
+def generate_dcgan32_inversion_dataset_many_images_one_labelfile(dataset_root="data/processed/dcgan32_inversion",
+                                       dataset_size=100000,
+                                       batch_size=128,
+                                       generator_checkpoint_path="models/dcgan32v1/model_weights/checkpointG.2020_04_26",
+                                       device=torch.device("cuda:0"),
+                                       torch_seed = None):
+
+    os.makedirs(dataset_root, exist_ok=True)
+
+    # Preparing the image saver
+    image_dir = os.path.join(dataset_root,"imgs")
+    imageconverter = torchvision.transforms.Compose([
+        torchvision.transforms.Normalize((-1, -1, -1), (2, 2, 2)),
+        torchvision.transforms.ToPILImage()
+    ])
+    image_saver = ImagePerFileBatchSaver(image_dir=image_dir,transform=imageconverter)
+
+    # Preparing the label saver
+    label_dir = os.path.join(dataset_root,"vecs")
+    label_saver = LabelOneTorchFileBatchSaver(label_dir=label_dir,
+                                              database_size=dataset_size,
+                                              label_shape=(100,),
+                                              device=device)
+
+    # Run the actual generator
+    generate_dcgan32_inversion_dataset(dataset_root=dataset_root,
+                                       dataset_size=dataset_size,
+                                       batch_size=batch_size,
+                                       generator_checkpoint_path=generator_checkpoint_path,
+                                       device=device,
+                                       torch_seed=torch_seed,
+                                       image_saver=image_saver,
+                                       label_saver=label_saver)
