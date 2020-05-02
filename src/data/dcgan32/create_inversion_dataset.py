@@ -55,19 +55,19 @@ class HDF5TensorSaver:
     def __init__(self,data_dir,*,
                  filename="images.h5",
                  database_size,
-                 data_shape=(32, 32, 3),
+                 data_shape=(3,32, 32),
                  group="data",
                  array="images",
                  transform=None):
 
         self.transform = transform
 
-        os.makedirs(data_dir, exist_ok=False)
-        self.file_path = os.path.join(data_shape,filename)
+        os.makedirs(data_dir, exist_ok=True)
+        self.file_path = os.path.join(data_dir,filename)
         assert not os.path.exists(self.file_path), "File already exists: "+self.file_path
 
         self.file = tables.open_file(self.file_path,mode='w')
-        data=self.file.create_group(group)
+        data=self.file.create_group("/",group)
         atom = tables.Atom.from_dtype(np.dtype("float32"))
 
         self.array = self.file.create_array(data,array,
@@ -110,7 +110,7 @@ def generate_dcgan32_inversion_dataset(dataset_root="data/processed/dcgan32_inve
     n_images = 0
     while dataset_size-batch_size > n_images:
         x = torch.zeros(batch_size, 100).normal_(0, 1.).to(device)
-        batch = generator(x).cpu()
+        batch = generator(x).cpu().detach()
         x = x.cpu()
 
         image_saver.save_batch(batch,first_index=n_images)
@@ -120,7 +120,7 @@ def generate_dcgan32_inversion_dataset(dataset_root="data/processed/dcgan32_inve
 
     if n_images < dataset_size:
         x = torch.zeros(dataset_size-n_images, 100).normal_(0, 1.).to(device)
-        batch = generator(x).cpu()
+        batch = generator(x).cpu().detach()
         x = x.cpu()
 
         image_saver.save_batch(batch,first_index=n_images)
@@ -211,13 +211,16 @@ def generate_dcgan32_inversion_dataset_two_h5(dataset_root="data/processed/dcgan
     image_saver = HDF5TensorSaver(data_dir=dataset_root,
                                   filename="images.h5",
                                   database_size=dataset_size,
-                                  data_shape=(32,32,3))
+                                  data_shape=(3,32,32),
+                                  array="images")
 
     # Preparing the label saver
     label_saver = HDF5TensorSaver(data_dir=dataset_root,
                                   filename="labels.h5",
                                   database_size=dataset_size,
-                                  data_shape=(100,))
+                                  data_shape=(100,),
+                                  array="labels"
+                                  )
 
 
     # Run the actual generator
