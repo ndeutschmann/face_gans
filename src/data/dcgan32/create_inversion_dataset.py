@@ -1,6 +1,8 @@
+import os
+import numpy as np
+import tables
 import torch
 import torchvision
-import os
 from src.models.dcgan32 import DCGen32
 
 class ImagePerFileBatchSaver:
@@ -25,7 +27,7 @@ class LabelPerTorchFileBatchSaver:
         self.transform = transform
         os.makedirs(label_dir, exist_ok=False)
 
-    def save_batch(self,batch,first_index=0):
+    def save_batch(self, batch, first_index=0):
         for i,x in enumerate(batch):
             x_t = self.transform(x) if self.transform is not None else x
             torch.save(x_t, os.path.join(self.label_dir, "{}.{}".format(i + first_index,self.ext)))
@@ -47,6 +49,40 @@ class LabelOneTorchFileBatchSaver:
 
     def finalize(self):
         torch.save(self.labels, os.path.join(self.label_dir,self.filename))
+
+
+class HDF5TensorSaver:
+    def __init__(self,data_dir,*,
+                 filename="images.h5",
+                 database_size,
+                 data_shape=(32, 32, 3),
+                 group="data",
+                 array="images",
+                 transform=None):
+
+        self.transform = transform
+
+        os.makedirs(data_dir, exist_ok=False)
+        self.file_path = os.path.join(data_shape,filename)
+        assert not os.path.exists(self.file_path), "File already exists: "+self.file_path
+
+        self.file = tables.open_file(self.file_path,mode='w')
+        data=self.file.create_group(group)
+        atom = tables.Atom.from_dtype(np.dtype("float32"))
+
+        self.array = self.file.create_array(data,array,
+                                             atom=atom,
+                                             shape=(database_size,*data_shape))
+
+    def save_batch(self, batch, first_index=0):
+        if isinstance(batch,np.ndarray):
+            npbatch = batch
+        else:
+            npbatch = batch.numpy()
+        self.array[first_index:first_index+batch.shape[0]] = npbatch
+
+    def finalize(self):
+        self.file.close()
 
 
 def generate_dcgan32_inversion_dataset(dataset_root="data/processed/dcgan32_inversion",
@@ -150,6 +186,39 @@ def generate_dcgan32_inversion_dataset_many_images_one_labelfile(dataset_root="d
                                               database_size=dataset_size,
                                               label_shape=(100,),
                                               device=device)
+
+    # Run the actual generator
+    generate_dcgan32_inversion_dataset(dataset_root=dataset_root,
+                                       dataset_size=dataset_size,
+                                       batch_size=batch_size,
+                                       generator_checkpoint_path=generator_checkpoint_path,
+                                       device=device,
+                                       torch_seed=torch_seed,
+                                       image_saver=image_saver,
+                                       label_saver=label_saver)
+
+
+def generate_dcgan32_inversion_dataset_two_h5(dataset_root="data/processed/dcgan32_inversion",
+                                       dataset_size=100000,
+                                       batch_size=128,
+                                       generator_checkpoint_path="models/dcgan32v1/model_weights/checkpointG.2020_04_26",
+                                       device=torch.device("cuda:0"),
+                                       torch_seed = None):
+
+    os.makedirs(dataset_root, exist_ok=True)
+
+    # Preparing the image saver
+    image_saver = HDF5TensorSaver(data_dir=dataset_root,
+                                  filename="images.h5",
+                                  database_size=dataset_size,
+                                  data_shape=(32,32,3))
+
+    # Preparing the label saver
+    label_saver = HDF5TensorSaver(data_dir=dataset_root,
+                                  filename="labels.h5",
+                                  database_size=dataset_size,
+                                  data_shape=(100,))
+
 
     # Run the actual generator
     generate_dcgan32_inversion_dataset(dataset_root=dataset_root,
