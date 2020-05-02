@@ -108,7 +108,7 @@ def generate_dcgan32_inversion_dataset(dataset_root="data/processed/dcgan32_inve
         torch.manual_seed(torch_seed)
 
     n_images = 0
-    while dataset_size > n_images:
+    while dataset_size-batch_size > n_images:
         x = torch.zeros(batch_size, 100).normal_(0, 1.).to(device)
         batch = generator(x).cpu()
         x = x.cpu()
@@ -116,7 +116,7 @@ def generate_dcgan32_inversion_dataset(dataset_root="data/processed/dcgan32_inve
         image_saver.save_batch(batch,first_index=n_images)
         label_saver.save_batch(x,first_index=n_images)
         n_images += batch_size
-        print("Generated and saved: {}/{} | {}".format(n_images,dataset_size,"="*(10*n_images//dataset_size)))
+        print("Generated and saved: {}/{} | {}".format(n_images, dataset_size, "=" * (10 * n_images // dataset_size)))
 
     if n_images < dataset_size:
         x = torch.zeros(dataset_size-n_images, 100).normal_(0, 1.).to(device)
@@ -125,6 +125,7 @@ def generate_dcgan32_inversion_dataset(dataset_root="data/processed/dcgan32_inve
 
         image_saver.save_batch(batch,first_index=n_images)
         label_saver.save_batch(x,first_index=n_images)
+        print("Generated and saved: {}/{} | {}".format(dataset_size, dataset_size, "=" * (10 * dataset_size // dataset_size)))
 
     image_saver.finalize()
     label_saver.finalize()
