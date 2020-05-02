@@ -185,8 +185,7 @@ def generate_dcgan32_inversion_dataset_many_images_one_labelfile(dataset_root="d
     label_dir = os.path.join(dataset_root,"vecs")
     label_saver = LabelOneTorchFileBatchSaver(label_dir=label_dir,
                                               database_size=dataset_size,
-                                              label_shape=(100,),
-                                              device=device)
+                                              label_shape=(100,))
 
     # Run the actual generator
     generate_dcgan32_inversion_dataset(dataset_root=dataset_root,

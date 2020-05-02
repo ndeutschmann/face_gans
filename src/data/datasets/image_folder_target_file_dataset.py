@@ -55,19 +55,19 @@ class ImageFoldersTargetFileDataset(VisionDataset):
         assert os.path.isdir(self.image_dir), "This is not a directory:\n" + str(self.image_dir)
         assert os.path.isfile(self.target_path), "This is not a file:\n" + str(self.target_path)
 
-        images = []
 
         self.targets = target_loader(self.target_path)
         target_accessed = [False for _ in range(len(self.targets))]
+
+        images = ["" for _ in range(len(self.targets))]
 
         for im in os.listdir(self.image_dir):
             impath = os.path.join(self.image_dir, im)
             if os.path.isfile(impath) and is_image_file(impath):
                 # Found an image, let's check that there is a matching target
                 im_index = int(os.path.splitext(im)[0])
-                target = self.targets[im_index]
                 target_accessed[im_index] = True
-                images.append(impath)
+                images[im_index] = impath
 
         assert all(target_accessed), "Image numbering incorrect. Please name your images from 0 to N without gaps."
 
