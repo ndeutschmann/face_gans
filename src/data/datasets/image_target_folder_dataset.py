@@ -7,6 +7,8 @@ from torchvision.datasets.folder import default_loader,is_image_file
 class ImageTargetFoldersDataset(VisionDataset):
     """Dataset with a folder for images, and a folder for targets
     This is for targets stored in individual files, which is overall a bad idea
+
+    Image file names must match target file names up to the extension
     """
 
     def __init__(self,

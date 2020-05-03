@@ -51,7 +51,7 @@ class LabelOneTorchFileBatchSaver:
         torch.save(self.labels, os.path.join(self.label_dir,self.filename))
 
 
-class HDF5TensorSaver:
+class HDF5TablesTensorSaver:
     def __init__(self,data_dir,*,
                  filename="images.h5",
                  database_size,
@@ -198,7 +198,7 @@ def generate_dcgan32_inversion_dataset_many_images_one_labelfile(dataset_root="d
                                        label_saver=label_saver)
 
 
-def generate_dcgan32_inversion_dataset_two_h5(dataset_root="data/processed/dcgan32_inversion",
+def generate_dcgan32_inversion_dataset_two_h5_tables(dataset_root="data/processed/dcgan32_inversion",
                                        dataset_size=100000,
                                        batch_size=128,
                                        generator_checkpoint_path="models/dcgan32v1/model_weights/checkpointG.2020_04_26",
@@ -208,14 +208,14 @@ def generate_dcgan32_inversion_dataset_two_h5(dataset_root="data/processed/dcgan
     os.makedirs(dataset_root, exist_ok=True)
 
     # Preparing the image saver
-    image_saver = HDF5TensorSaver(data_dir=dataset_root,
+    image_saver = HDF5TablesTensorSaver(data_dir=dataset_root,
                                   filename="images.h5",
                                   database_size=dataset_size,
                                   data_shape=(3,32,32),
                                   array="images")
 
     # Preparing the label saver
-    label_saver = HDF5TensorSaver(data_dir=dataset_root,
+    label_saver = HDF5TablesTensorSaver(data_dir=dataset_root,
                                   filename="labels.h5",
                                   database_size=dataset_size,
                                   data_shape=(100,),

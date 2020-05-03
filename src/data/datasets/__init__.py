@@ -1,4 +1,4 @@
 from .celebA_dataloader import create_celebA_dataloader
 from .image_target_folder_dataset import ImageTargetFoldersDataset
 from .image_folder_target_file_dataset import ImageFoldersTargetFileDataset
-from ..dcgan32.load_inversion_dataset import create_dcgan32_inversion_dataloader_many_files
+from .indexable_dataset import MultiHDF5TablesDataset

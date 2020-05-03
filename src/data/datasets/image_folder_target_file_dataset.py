@@ -8,7 +8,9 @@ class ImageFoldersTargetFileDataset(VisionDataset):
     """Dataset with a folder for images, and a file for the labels
     Images are supposed to be X.FMT where X is an integer and FMT is an image format
     Targets are store in a single file which can be loaded as an indexable object Obj such that
-    Obj[X] is the label of image X.
+    Obj[X] is the label of image X.FTM
+
+    The indices (image names) must span the whole integrer interval [[0,N]]
     """
 
     def __init__(self,
@@ -55,7 +57,6 @@ class ImageFoldersTargetFileDataset(VisionDataset):
         assert os.path.isdir(self.image_dir), "This is not a directory:\n" + str(self.image_dir)
         assert os.path.isfile(self.target_path), "This is not a file:\n" + str(self.target_path)
 
-
         self.targets = target_loader(self.target_path)
         target_accessed = [False for _ in range(len(self.targets))]
 
@@ -66,6 +67,7 @@ class ImageFoldersTargetFileDataset(VisionDataset):
             if os.path.isfile(impath) and is_image_file(impath):
                 # Found an image, let's check that there is a matching target
                 im_index = int(os.path.splitext(im)[0])
+                assert not target_accessed[im_index], "Two images share the index "+str(im_index)
                 target_accessed[im_index] = True
                 images[im_index] = impath
 
