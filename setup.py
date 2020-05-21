@@ -7,4 +7,8 @@ setup(
     description='A short description of the project.',
     author='nicolas deutschmann',
     license='MIT',
+    entry_points='''
+        [console_scripts]
+        dcg32-invert=src.models.train_model.dcgan32.command_line:dcgan32_inversion
+    ''',
 )
