@@ -18,7 +18,9 @@ def prepare_dataset(dataset_root="data/processed/dcgan32_inversion",
                     batch_size=128,
                     torch_seed=42,
                     val_torch_seed=None,
-                    test_torch_seed=None):
+                    test_torch_seed=None,
+                    generator_checkpoint_path="models/dcgan32v1/model_weights/checkpointG.2020_04_26",
+                    ):
 
     print("Creating the training dataset at "+os.path.join(dataset_root,"train"))
 
@@ -26,7 +28,8 @@ def prepare_dataset(dataset_root="data/processed/dcgan32_inversion",
         os.path.join(dataset_root, "train"),
         dataset_size=dataset_size,
         batch_size=batch_size,
-        torch_seed=torch_seed
+        torch_seed=torch_seed,
+        generator_checkpoint_path=generator_checkpoint_path
     )
 
     print("Creating the validation dataset at "+os.path.join(dataset_root, "val"))
@@ -35,7 +38,8 @@ def prepare_dataset(dataset_root="data/processed/dcgan32_inversion",
         os.path.join(dataset_root, "val"),
         dataset_size=val_size,
         batch_size=batch_size,
-        torch_seed=val_torch_seed if val_torch_seed is not None else torch_seed
+        torch_seed=val_torch_seed if val_torch_seed is not None else torch_seed,
+        generator_checkpoint_path=generator_checkpoint_path
     )
 
     print("Creating the test dataset at "+os.path.join(dataset_root, "test"))
@@ -44,7 +48,8 @@ def prepare_dataset(dataset_root="data/processed/dcgan32_inversion",
         os.path.join(dataset_root, "test"),
         dataset_size=test_size,
         batch_size=batch_size,
-        torch_seed=test_torch_seed if test_torch_seed is not None else test_torch_seed
+        torch_seed=test_torch_seed if test_torch_seed is not None else test_torch_seed,
+        generator_checkpoint_path=generator_checkpoint_path
     )
 
 
@@ -139,7 +144,7 @@ def train_inversion_model(n_channels=350,
             vLoss = compute_vloss(imgs,zs,invgan,loss_function)
 
             if (i % loss_report_period) == 0:
-                print("step {0}| Loss = {1:.3e}| vLoss = {2.3e}".format(i, Loss, vLoss))
+                print("step {0}| Loss = {1:.3e}| vLoss = {2:.3e}".format(i, Loss, vLoss))
 
             Losses.append(Loss)
             vLosses.append(vLoss)
