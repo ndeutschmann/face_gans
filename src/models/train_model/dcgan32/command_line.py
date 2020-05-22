@@ -29,7 +29,8 @@ def prepare_dataset_cli(dataset_root,
                         batch_size,
                         torch_seed,
                         val_torch_seed,
-                        test_torch_seed):
+                        test_torch_seed,
+                        generator_checkpoint_path):
     prepare_dataset(dataset_root=dataset_root,
                     dataset_size=dataset_size,
                     val_size=val_size,
@@ -37,7 +38,8 @@ def prepare_dataset_cli(dataset_root,
                     batch_size=batch_size,
                     torch_seed=torch_seed,
                     val_torch_seed=val_torch_seed,
-                    test_torch_seed=test_torch_seed)
+                    test_torch_seed=test_torch_seed,
+                    generator_checkpoint_path=generator_checkpoint_path)
 
 
 @dcgan32_inversion.command("train", help="Train a regression model to invert the generator of DCGAN32")

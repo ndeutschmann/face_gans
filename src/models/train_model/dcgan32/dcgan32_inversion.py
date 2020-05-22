@@ -38,7 +38,7 @@ def prepare_dataset(dataset_root="data/processed/dcgan32_inversion",
         os.path.join(dataset_root, "val"),
         dataset_size=val_size,
         batch_size=batch_size,
-        torch_seed=val_torch_seed if val_torch_seed is not None else torch_seed,
+        torch_seed=val_torch_seed if val_torch_seed is not None else torch_seed+1,
         generator_checkpoint_path=generator_checkpoint_path
     )
 
@@ -48,7 +48,7 @@ def prepare_dataset(dataset_root="data/processed/dcgan32_inversion",
         os.path.join(dataset_root, "test"),
         dataset_size=test_size,
         batch_size=batch_size,
-        torch_seed=test_torch_seed if test_torch_seed is not None else test_torch_seed,
+        torch_seed=test_torch_seed if test_torch_seed is not None else torch_seed+2,
         generator_checkpoint_path=generator_checkpoint_path
     )
 
