@@ -86,6 +86,7 @@ def compute_vloss(imgs, zs, model, loss):
 
 def train_inversion_model(n_channels=350,
                           learning_rate=5.e-4,
+                          dropout_rate=.3,
                           optim_class=torch.optim.Adam,
                           n_epochs=70,
                           data_root="data/processed/dcgan32_inversion",
@@ -111,11 +112,11 @@ def train_inversion_model(n_channels=350,
     dataloader, val_loader = create_dataloaders(data_path=os.path.join(data_root,"train"),
                        val_path=os.path.join(data_root,"val"),
                        batch_size=128,
-                       val_batch_size=32)
+                       val_batch_size=128)
 
     infinite_val_loader = cycle(val_loader)
 
-    invgan = DCGAN32Inverter(channels=n_channels).to(device)
+    invgan = DCGAN32Inverter(channels=n_channels, dropout_rate=dropout_rate).to(device)
 
     optim = optim_class(invgan.parameters(), lr=learning_rate)
     loss_function = torch.nn.MSELoss()
@@ -130,7 +131,7 @@ def train_inversion_model(n_channels=350,
     }
 
     for epoch in range(n_epochs):
-        print("Starting epoch {}/{}".format(epoch+1,n_epochs))
+        print("Starting epoch {}/{}".format(epoch+1, n_epochs))
 
         for i, data in enumerate(dataloader):
             imgs = data[0].to(device)
