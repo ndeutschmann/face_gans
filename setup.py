@@ -10,5 +10,6 @@ setup(
     entry_points='''
         [console_scripts]
         dcg32-invert=src.models.train_model.dcgan32.command_line:dcgan32_inversion
+        dcg32=src.models.train_model.dcgan32.command_line:dcgan32
     ''',
 )
