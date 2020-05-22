@@ -141,7 +141,9 @@ def train_inversion_model(n_channels=350,
             imgs = vdata[0].to(device)
             zs = vdata[1].to(device)
 
+            invgan.eval()
             vLoss = compute_vloss(imgs,zs,invgan,loss_function)
+            invgan.train()
 
             if (i % loss_report_period) == 0:
                 print("step {0}| Loss = {1:.3e}| vLoss = {2:.3e}".format(i, Loss, vLoss))
