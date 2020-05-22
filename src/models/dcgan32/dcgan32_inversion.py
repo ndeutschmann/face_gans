@@ -28,9 +28,7 @@ class DCGAN32Inverter(torch.nn.Module):
             torch.nn.Linear(16 * channels, 16 * channels),
             torch.nn.BatchNorm1d(channels * 16),
             torch.nn.LeakyReLU(),
-            torch.nn.BatchNorm1d(channels * 16),
-            torch.nn.LeakyReLU(),
-            torch.nn.LeakyReLU(),
+            torch.nn.Linear(16 * channels, 16 * channels),
             torch.nn.BatchNorm1d(channels * 16),
             torch.nn.LeakyReLU(),
             torch.nn.Linear(16 * channels, 100)
