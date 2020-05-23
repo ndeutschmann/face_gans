@@ -9,6 +9,7 @@ import src.data.dcgan32.load_inversion_dataset as ds_load
 from src.data.util import cycle
 
 from src.models.dcgan32 import DCGAN32Inverter
+from src.models.util import GaussianNoise
 
 
 def prepare_dataset(dataset_root="data/processed/dcgan32_inversion",
@@ -87,6 +88,7 @@ def compute_vloss(imgs, zs, model, loss):
 def train_inversion_model(n_channels=350,
                           learning_rate=5.e-4,
                           dropout_rate=.3,
+                          noise_level=0.1,
                           optim_class=torch.optim.Adam,
                           n_epochs=70,
                           data_root="data/processed/dcgan32_inversion",
@@ -117,6 +119,10 @@ def train_inversion_model(n_channels=350,
     infinite_val_loader = cycle(val_loader)
 
     invgan = DCGAN32Inverter(channels=n_channels, dropout_rate=dropout_rate).to(device)
+    if noise_level > 0:
+        noise = GaussianNoise(noise_level)
+    else:
+        noise = lambda x: x
 
     optim = optim_class(invgan.parameters(), lr=learning_rate)
     loss_function = torch.nn.MSELoss()
@@ -134,7 +140,7 @@ def train_inversion_model(n_channels=350,
         print("Starting epoch {}/{}".format(epoch+1, n_epochs))
 
         for i, data in enumerate(dataloader):
-            imgs = data[0].to(device)
+            imgs = noise(data[0].to(device))
             zs = data[1].to(device)
             Loss = train_one_step(imgs, zs, invgan, optim, loss_function)
 

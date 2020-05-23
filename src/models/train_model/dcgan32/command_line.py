@@ -83,6 +83,7 @@ def prepare_dataset_cli(dataset_root,
 @click.option("--n_channels", default=350, type=click.INT)
 @click.option("--learning_rate", default=5e-4, type=click.FLOAT)
 @click.option("--dropout_rate", default=.3, type=click.FLOAT)
+@click.option("--noise_level", default=.1, type=click.FLOAT)
 @click.option("--n_epochs", default=70, type=click.INT)
 @click.option("--data_root", default="data/processed/dcgan32_inversion", type=click.Path())
 @click.option("--exp_root", default="tmp/inversion_experiment", type=click.Path())
@@ -91,6 +92,7 @@ def prepare_dataset_cli(dataset_root,
 def train(n_channels,
           learning_rate,
           dropout_rate,
+          noise_level,
           n_epochs,
           data_root,
           exp_root,
@@ -99,6 +101,7 @@ def train(n_channels,
     train_inversion_model(n_channels=n_channels,
                           learning_rate=learning_rate,
                           dropout_rate=dropout_rate,
+                          noise_level=noise_level,
                           n_epochs=n_epochs,
                           data_root=data_root,
                           exp_root=exp_root,
