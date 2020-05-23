@@ -162,6 +162,10 @@ def train_inversion_model(n_channels=350,
         torch.save({
             "timestamp": ts,
             "epoch": epoch,
+            "n_channels" : n_channels,
+            "learning_rate":learning_rate,
+            "dropout_rate":dropout_rate,
+            "noise_level":noise_level,
             "Losses": Losses,
             "vLosses": vLosses
         }, os.path.join(exp_dir, "run_summary.pkl"))
