@@ -83,6 +83,7 @@ train_inversion_options = [
     click.Option(["--n_channels"], default=128, type=click.INT),
     click.Option(["--learning_rate"], default=5e-4, type=click.FLOAT),
     click.Option(["--dropout_rate"], default=.3, type=click.FLOAT),
+    click.Option(["--weight_decay"], default=0., type=click.FLOAT),
     click.Option(["--noise_level"], default=.1, type=click.FLOAT),
     click.Option(["--batch_size"], default=32, type=click.INT),
     click.Option(["--val_batch_size"], default=None, type=click.INT),

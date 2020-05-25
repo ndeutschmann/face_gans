@@ -86,6 +86,7 @@ def compute_vloss(imgs, zs, model, loss):
 def train_inversion_model(n_channels=64,
                           learning_rate=5.e-4,
                           dropout_rate=.3,
+                          weight_decay=0.,
                           noise_level=0.1,
                           batch_size=32,
                           val_batch_size=None,
@@ -126,7 +127,7 @@ def train_inversion_model(n_channels=64,
     else:
         def noise(x): return x
 
-    optim = optim_class(invgan.parameters(), lr=learning_rate)
+    optim = optim_class(invgan.parameters(), lr=learning_rate, weight_decay=weight_decay)
     loss_function = torch.nn.MSELoss()
 
     Losses = []
@@ -169,6 +170,7 @@ def train_inversion_model(n_channels=64,
             "dropout_rate": dropout_rate,
             "noise_level": noise_level,
             "batch_size": batch_size,
+            "weight_decay": weight_decay,
             "Losses": Losses,
             "vLosses": vLosses
         }, os.path.join(exp_dir, "run_summary.pkl"))
