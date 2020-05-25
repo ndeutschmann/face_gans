@@ -22,8 +22,7 @@ def prepare_dataset(dataset_root="data/processed/dcgan32_inversion",
                     test_torch_seed=None,
                     generator_checkpoint_path="models/dcgan32v1/model_weights/checkpointG.2020_04_26",
                     ):
-
-    print("Creating the training dataset at "+os.path.join(dataset_root,"train"))
+    print("Creating the training dataset at " + os.path.join(dataset_root, "train"))
 
     ds_create.generate_dcgan32_inversion_dataset_two_h5_tables(
         os.path.join(dataset_root, "train"),
@@ -33,23 +32,23 @@ def prepare_dataset(dataset_root="data/processed/dcgan32_inversion",
         generator_checkpoint_path=generator_checkpoint_path
     )
 
-    print("Creating the validation dataset at "+os.path.join(dataset_root, "val"))
+    print("Creating the validation dataset at " + os.path.join(dataset_root, "val"))
 
     ds_create.generate_dcgan32_inversion_dataset_two_h5_tables(
         os.path.join(dataset_root, "val"),
         dataset_size=val_size,
         batch_size=batch_size,
-        torch_seed=val_torch_seed if val_torch_seed is not None else torch_seed+1,
+        torch_seed=val_torch_seed if val_torch_seed is not None else torch_seed + 1,
         generator_checkpoint_path=generator_checkpoint_path
     )
 
-    print("Creating the test dataset at "+os.path.join(dataset_root, "test"))
+    print("Creating the test dataset at " + os.path.join(dataset_root, "test"))
 
     ds_create.generate_dcgan32_inversion_dataset_two_h5_tables(
         os.path.join(dataset_root, "test"),
         dataset_size=test_size,
         batch_size=batch_size,
-        torch_seed=test_torch_seed if test_torch_seed is not None else torch_seed+2,
+        torch_seed=test_torch_seed if test_torch_seed is not None else torch_seed + 2,
         generator_checkpoint_path=generator_checkpoint_path
     )
 
@@ -58,7 +57,6 @@ def create_dataloaders(data_path="data/processed/dcgan32_inversion/train",
                        val_path="data/processed/dcgan32_inversion/val",
                        batch_size=128,
                        val_batch_size=32):
-
     dataloader = ds_load.create_dcgan32_inversion_dataloader_hdf5_tables(
         root=data_path,
         batch_size=batch_size)
@@ -85,10 +83,12 @@ def compute_vloss(imgs, zs, model, loss):
         return loss(predicted_zs, zs).cpu().item()
 
 
-def train_inversion_model(n_channels=350,
+def train_inversion_model(n_channels=64,
                           learning_rate=5.e-4,
                           dropout_rate=.3,
                           noise_level=0.1,
+                          batch_size=32,
+                          val_batch_size=None,
                           optim_class=torch.optim.Adam,
                           n_epochs=70,
                           data_root="data/processed/dcgan32_inversion",
@@ -96,11 +96,10 @@ def train_inversion_model(n_channels=350,
                           exp_root="tmp/inversion_experiment",
                           exp_id="1",
                           loss_report_period=150):
-
     os.makedirs(exp_root, exist_ok=True)
-    exp_dir = os.path.join(exp_root,exp_id)
+    exp_dir = os.path.join(exp_root, exp_id)
     try:
-        os.makedirs(exp_dir,exist_ok=False)
+        os.makedirs(exp_dir, exist_ok=False)
     except FileExistsError as e:
         print("Experiments must run in a unique folder given by exp_root/exp_id")
         raise
@@ -111,10 +110,13 @@ def train_inversion_model(n_channels=350,
         else:
             device = torch.device("cpu")
 
-    dataloader, val_loader = create_dataloaders(data_path=os.path.join(data_root,"train"),
-                       val_path=os.path.join(data_root,"val"),
-                       batch_size=128,
-                       val_batch_size=128)
+    if val_batch_size is None:
+        val_batch_size = batch_size
+
+    dataloader, val_loader = create_dataloaders(data_path=os.path.join(data_root, "train"),
+                                                val_path=os.path.join(data_root, "val"),
+                                                batch_size=batch_size,
+                                                val_batch_size=val_batch_size)
 
     infinite_val_loader = cycle(val_loader)
 
@@ -122,7 +124,7 @@ def train_inversion_model(n_channels=350,
     if noise_level > 0:
         noise = GaussianNoise(noise_level)
     else:
-        noise = lambda x: x
+        def noise(x): return x
 
     optim = optim_class(invgan.parameters(), lr=learning_rate)
     loss_function = torch.nn.MSELoss()
@@ -131,13 +133,13 @@ def train_inversion_model(n_channels=350,
     vLosses = []
 
     best_checkpoint = {
-        "validation_loss" : float("inf"),
+        "validation_loss": float("inf"),
         "state_dict": None,
         "epoch": -1
     }
 
     for epoch in range(n_epochs):
-        print("Starting epoch {}/{}".format(epoch+1, n_epochs))
+        print("Starting epoch {}/{}".format(epoch + 1, n_epochs))
 
         for i, data in enumerate(dataloader):
             imgs = noise(data[0].to(device))
@@ -149,7 +151,7 @@ def train_inversion_model(n_channels=350,
             zs = vdata[1].to(device)
 
             invgan.eval()
-            vLoss = compute_vloss(imgs,zs,invgan,loss_function)
+            vLoss = compute_vloss(imgs, zs, invgan, loss_function)
             invgan.train()
 
             if (i % loss_report_period) == 0:
@@ -162,10 +164,11 @@ def train_inversion_model(n_channels=350,
         torch.save({
             "timestamp": ts,
             "epoch": epoch,
-            "n_channels" : n_channels,
-            "learning_rate":learning_rate,
-            "dropout_rate":dropout_rate,
-            "noise_level":noise_level,
+            "n_channels": n_channels,
+            "learning_rate": learning_rate,
+            "dropout_rate": dropout_rate,
+            "noise_level": noise_level,
+            "batch_size": batch_size,
             "Losses": Losses,
             "vLosses": vLosses
         }, os.path.join(exp_dir, "run_summary.pkl"))
@@ -181,9 +184,3 @@ def train_inversion_model(n_channels=350,
                 best_checkpoint,
                 os.path.join(exp_dir, "best_checkpoint.pkl")
             )
-
-
-
-
-
-
