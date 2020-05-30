@@ -8,7 +8,7 @@ import src.data.dcgan32.create_inversion_dataset as ds_create
 import src.data.dcgan32.load_inversion_dataset as ds_load
 from src.data.util import cycle
 
-from src.models.dcgan32 import DCGAN32Inverter
+from src.models.dcgan32 import DCGAN32Inverter,DCgan32ResnetInverter
 from src.models.util import GaussianNoise
 
 
@@ -96,7 +96,8 @@ def train_inversion_model(n_channels=64,
                           device=None,
                           exp_root="tmp/inversion_experiment",
                           exp_id="1",
-                          loss_report_period=150):
+                          loss_report_period=150,
+                          model_version=1):
     os.makedirs(exp_root, exist_ok=True)
     exp_dir = os.path.join(exp_root, exp_id)
     try:
@@ -121,7 +122,13 @@ def train_inversion_model(n_channels=64,
 
     infinite_val_loader = cycle(val_loader)
 
-    invgan = DCGAN32Inverter(channels=n_channels, dropout_rate=dropout_rate).to(device)
+    if model_version == 1:
+        invgan = DCGAN32Inverter(channels=n_channels, dropout_rate=dropout_rate).to(device)
+    elif model_version == 2:
+        invgan = DCgan32ResnetInverter(n_channels=n_channels)
+    else:
+        raise ValueError(f"model version can be 1 or 2, got {model_version}")
+
     if noise_level > 0:
         noise = GaussianNoise(noise_level)
     else:

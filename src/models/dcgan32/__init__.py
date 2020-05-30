@@ -1,2 +1,2 @@
 from .dcgan32 import DCGen32,DCDiscr32
-from .dcgan32_inversion import DCGAN32Inverter
+from .dcgan32_inversion import DCGAN32Inverter,DCgan32ResnetInverter

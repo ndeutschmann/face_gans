@@ -92,6 +92,7 @@ train_inversion_options = [
     click.Option(["--exp_root"], default="tmp/inversion_experiment", type=click.Path()),
     click.Option(["--exp_id"], default="1", type=click.STRING),
     click.Option(["--loss_report_period"], default=150, type=click.INT),
+    click.Option(["--model_version"], default=2, type=click.INT),
 ]
 
 train_inversion_cli = click.Command(
