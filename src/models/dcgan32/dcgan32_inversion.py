@@ -48,10 +48,13 @@ class DCgan32ResnetInverter(torch.nn.Module):
         self.block1 = torch.nn.Sequential(
             torch.nn.Conv2d(n_channels, n_channels, 3, 1, 1),
             torch.nn.LeakyReLU(),
+            torch.nn.BatchNorm2d(n_channels),
             torch.nn.Conv2d(n_channels, n_channels, 3, 1, 1),
             torch.nn.LeakyReLU(),
+            torch.nn.BatchNorm2d(n_channels),
             torch.nn.Conv2d(n_channels, n_channels, 3, 1, 1),
             torch.nn.LeakyReLU(),
+            torch.nn.BatchNorm2d(n_channels),
             torch.nn.Conv2d(n_channels, n_channels, 3, 1, 1),
             torch.nn.LeakyReLU(),
         )
@@ -61,10 +64,13 @@ class DCgan32ResnetInverter(torch.nn.Module):
         self.block2 = torch.nn.Sequential(
             torch.nn.Conv2d(2 * n_channels, 2 * n_channels, 3, 1, 1),
             torch.nn.LeakyReLU(),
+            torch.nn.BatchNorm2d(2*n_channels),
             torch.nn.Conv2d(2 * n_channels, 2 * n_channels, 3, 1, 1),
             torch.nn.LeakyReLU(),
+            torch.nn.BatchNorm2d(2*n_channels),
             torch.nn.Conv2d(2 * n_channels, 2 * n_channels, 3, 1, 1),
             torch.nn.LeakyReLU(),
+            torch.nn.BatchNorm2d(2*n_channels),
             torch.nn.Conv2d(2 * n_channels, 2 * n_channels, 3, 1, 1),
             torch.nn.LeakyReLU(),
         )
@@ -74,10 +80,13 @@ class DCgan32ResnetInverter(torch.nn.Module):
         self.block3 = torch.nn.Sequential(
             torch.nn.Conv2d(4 * n_channels, 4 * n_channels, 3, 1, 1),
             torch.nn.LeakyReLU(),
+            torch.nn.BatchNorm2d(4*n_channels),
             torch.nn.Conv2d(4 * n_channels, 4 * n_channels, 3, 1, 1),
             torch.nn.LeakyReLU(),
+            torch.nn.BatchNorm2d(4 * n_channels),
             torch.nn.Conv2d(4 * n_channels, 4 * n_channels, 3, 1, 1),
             torch.nn.LeakyReLU(),
+            torch.nn.BatchNorm2d(4 * n_channels),
             torch.nn.Conv2d(4 * n_channels, 4 * n_channels, 3, 1, 1),
             torch.nn.LeakyReLU(),
         )
@@ -87,12 +96,16 @@ class DCgan32ResnetInverter(torch.nn.Module):
         self.block4 = torch.nn.Sequential(
             torch.nn.Conv2d(4 * n_channels, 4 * n_channels, 3, 1, 1),
             torch.nn.LeakyReLU(),
+            torch.nn.BatchNorm2d(4 * n_channels),
             torch.nn.Conv2d(4 * n_channels, 4 * n_channels, 3, 1, 1),
             torch.nn.LeakyReLU(),
+            torch.nn.BatchNorm2d(4 * n_channels),
             torch.nn.Conv2d(4 * n_channels, 4 * n_channels, 3, 1, 1),
             torch.nn.LeakyReLU(),
+            torch.nn.BatchNorm2d(4 * n_channels),
             torch.nn.Conv2d(4 * n_channels, 4 * n_channels, 3, 1, 1),
             torch.nn.LeakyReLU(),
+            torch.nn.BatchNorm2d(4 * n_channels),
             torch.nn.Conv2d(4 * n_channels, 4 * n_channels, 1, 1, 0),
             torch.nn.LeakyReLU(),
         )
