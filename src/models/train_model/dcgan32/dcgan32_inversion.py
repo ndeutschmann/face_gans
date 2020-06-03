@@ -125,7 +125,7 @@ def train_inversion_model(n_channels=64,
     if model_version == 1:
         invgan = DCGAN32Inverter(channels=n_channels, dropout_rate=dropout_rate).to(device)
     elif model_version == 2:
-        invgan = DCgan32ResnetInverter(n_channels=n_channels)
+        invgan = DCgan32ResnetInverter(n_channels=n_channels).to(device)
     else:
         raise ValueError(f"model version can be 1 or 2, got {model_version}")
 
